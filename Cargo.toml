@@ -1,8 +1,15 @@
 [package]
-name = "Scraper"
+name = "scraperKeyboard"
 version = "0.1.0"
 edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
+bacon = "2.14.0"
+color-eyre = "0.6.2"
+irust = "1.71.19"
+reqwest = { version = "0.11.23", features = ["blocking"] }
+scraper = "0.18.1"
+tokio = "1.35.1"
+tracing = "0.1.40"
