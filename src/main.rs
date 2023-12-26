@@ -1,33 +1,34 @@
-use reqwest::{blocking::get, Error, Response, StatusCode};
+use reqwest::{Error, Response};
 
 #[tokio::main]
 async fn main() {
-    // Make the HTTP request
+    let resp = make_request().await;
+    let text : Result<String, Error>;
+    match resp {
+        Ok(resp) => text = get_response_body(resp).await,
+        _ => panic!("EMPTY"),
+    };
+    match text {
+        Ok(text) => {
+            print!("{}", text);
+        }
+        _ => panic!("Empty"),
+    }
+}
+
+async fn make_request() -> Result<Response, Error> {
     let client = reqwest::Client::new();
     let resp = client
-        .get("http://httpbin.org/get")
+        .get("https://finnhub.io/api/v1/search?q=apple")
         .header(
             "X-Finnhub-Token",
             "cm3ml71r01qsvtcqsclgcm3ml71r01qsvtcqscm0",
         )
         .send()
-        .await;
-    match resp {
-        Ok(resp) => {
-            status(&resp);
-            println!("{:#?}", resp);
-        }
-        _ => return,
-    }
-    // Call the status method with the response
+        .await?;
+    Ok(resp)
 }
 
-fn status(resp: &Response) {
-    if resp.status().is_success() {
-        println!("success!");
-    } else if resp.status().is_server_error() {
-        println!("server error!");
-    } else {
-        println!("Something else happened. Status: {:?}", resp.status());
-    }
+async fn get_response_body(resp : Response) -> Result<String, Error> {
+    resp.text().await
 }

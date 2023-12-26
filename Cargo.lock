@@ -2597,7 +2597,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "scraperKeyboard"
+name = "scraper_keyboard"
 version = "0.1.0"
 dependencies = [
  "bacon",
@@ -2605,6 +2605,7 @@ dependencies = [
  "irust",
  "reqwest",
  "scraper",
+ "serde_json",
  "tokio",
  "tracing",
 ]
