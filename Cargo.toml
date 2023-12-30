@@ -7,10 +7,12 @@ edition = "2021"
 
 [dependencies]
 bacon = "2.14.0"
+chrono = { version = "0.4.31", features = ["serde"] }
 color-eyre = "0.6.2"
 irust = "1.71.19"
 reqwest = { version = "0.11.23", features = ["blocking"] }
 scraper = "0.18.1"
+serde = "1.0.193"
 serde_json = "1.0.108"
 tokio = "1.35.1"
 tracing = "0.1.40"

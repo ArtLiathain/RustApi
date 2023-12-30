@@ -320,6 +320,7 @@ dependencies = [
  "iana-time-zone",
  "js-sys",
  "num-traits",
+ "serde",
  "wasm-bindgen",
  "windows-targets 0.48.5",
 ]
@@ -2601,10 +2602,12 @@ name = "scraper_keyboard"
 version = "0.1.0"
 dependencies = [
  "bacon",
+ "chrono",
  "color-eyre",
  "irust",
  "reqwest",
  "scraper",
+ "serde",
  "serde_json",
  "tokio",
  "tracing",
