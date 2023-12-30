@@ -30,24 +30,7 @@ async fn main() {
 
 #[derive(Debug,Deserialize)]
 #[serde(rename_all = "PascalCase")]
-struct TimeSeriesData {
-    pub date: DateTime<Utc>,
-    pub stock_data: StockData,
-}
 
-#[derive(Debug,Deserialize)]
-struct StockData {
-    #[serde(rename = "1. open")]
-    open: String,
-    #[serde(rename = "2. high")]
-    high: String,
-    #[serde(rename = "3. low")]
-    low: String,
-    #[serde(rename = "4. close")]
-    close: String,
-    #[serde(rename = "5. volume")]
-    volume: String,
-}
 
 enum Errors {
     Reqwest(reqwest::Error),
@@ -66,6 +49,26 @@ async fn make_request(ticker: &str) -> Result<Response, reqwest::Error> {
 
 async fn get_response_body(resp: Response) -> Result<String, reqwest::Error> {
     resp.text().await
+}
+
+
+struct TimeSeriesData {
+    pub date: DateTime<Utc>,
+    pub stock_data: StockData,
+}
+
+#[derive(Debug,Deserialize)]
+struct StockData {
+    #[serde(rename = "1. open")]
+    open: String,
+    #[serde(rename = "2. high")]
+    high: String,
+    #[serde(rename = "3. low")]
+    low: String,
+    #[serde(rename = "4. close")]
+    close: String,
+    #[serde(rename = "5. volume")]
+    volume: String,
 }
 
 async fn serialse_to_stockdata(text: String) -> Result<HashMap<String, StockData>, Errors> {
