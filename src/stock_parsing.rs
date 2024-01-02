@@ -1,9 +1,16 @@
 pub mod stock_parsing {
-    use serde::Deserialize;
+    use chrono::NaiveDate;
+    use serde::{Deserialize, Deserializer};
     use serde_json::Error;
     use std::collections::HashMap;
 
+    #[derive(Deserialize, Debug)]
+    pub struct TimeSeries {
+        #[serde(rename = "Monthly Time Series")]
+        pub monthly_time_series: HashMap<NaiveDate, StockData>,
+    }
 
+    
 
     #[derive(Debug, Deserialize)]
     #[serde(rename_all = "PascalCase")]
@@ -20,22 +27,17 @@ pub mod stock_parsing {
         pub volume: Option<String>,
     }
 
-    pub fn serialse_to_stockdata(text: String) -> Result<HashMap<String, StockData>, Error> {
-        let data: Result<HashMap<String, StockData>, serde_json::Error> =
-            serde_json::from_str(&text);
+    pub fn serialse_to_timeseries(text: String) -> Result<TimeSeries, Error> {
+        let data: Result<TimeSeries, serde_json::Error> = serde_json::from_str(&text);
         match data {
             Ok(data) => Ok(data),
             Err(e) => Err(e),
         }
     }
 
-
-
-    
     #[cfg(test)]
     mod stock_parsing_tests {
-        use super::serialse_to_stockdata;
-        use chrono::NaiveDate;
+        use super::serialse_to_timeseries;
         use std::fs;
 
         fn setup() -> String {
@@ -44,8 +46,8 @@ pub mod stock_parsing {
 
         #[test]
         fn test_sts_incorrect_input() {
-            let stockdata = serialse_to_stockdata("Empty".to_string());
-            match stockdata {
+            let timeseries = serialse_to_timeseries("Empty".to_string());
+            match timeseries {
                 Ok(_) => assert!(false),
                 Err(_) => assert!(true),
             }
@@ -54,9 +56,9 @@ pub mod stock_parsing {
         #[test]
         fn test_sts_create_object() {
             let json_body = setup();
-            let stockdata = serialse_to_stockdata(json_body);
-            match stockdata {
-                Ok(stockdata) => assert!(stockdata.keys().len() > 0),
+            let timeseries = serialse_to_timeseries(json_body);
+            match timeseries {
+                Ok(timeseries) => assert!(timeseries.monthly_time_series.keys().len() > 0),
                 Err(_e) => assert!(false),
             }
         }
@@ -64,25 +66,11 @@ pub mod stock_parsing {
         #[test]
         fn test_sts_input_is_indexable() {
             let json_body = setup();
-            let stockdata = serialse_to_stockdata(json_body);
-            match stockdata {
-                Ok(stockdata) => {
-                    for (_key, stockvalue) in &stockdata {
+            let timeseries = serialse_to_timeseries(json_body);
+            match timeseries {
+                Ok(timeseries) => {
+                    for (_key, stockvalue) in &timeseries.monthly_time_series {
                         assert!(!stockvalue.open.is_empty())
-                    }
-                }
-                Err(_e) => assert!(false),
-            }
-        }
-
-        #[test]
-        fn test_sts_keys_are_dates() {
-            let json_body = setup();
-            let stockdata = serialse_to_stockdata(json_body);
-            match stockdata {
-                Ok(stockdata) => {
-                    for (key, _stockvalue) in &stockdata {
-                        assert!(NaiveDate::parse_from_str(key, "%Y-%m-%d").is_ok());
                     }
                 }
                 Err(_e) => assert!(false),
