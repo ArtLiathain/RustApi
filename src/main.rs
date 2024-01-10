@@ -1,6 +1,6 @@
 mod stock_parsing;
 mod http_handler;
-
+mod data_manager;
 
 use std::fs::{self};
 use crate::stock_parsing::stock_parsing::serialse_to_timeseries;

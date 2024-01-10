@@ -1,7 +1,8 @@
 pub mod stock_parsing {
     use chrono::NaiveDate;
-    use serde::{Deserialize, Deserializer};
+    use serde::Deserialize;
     use serde_json::Error;
+    use serde_this_or_that::as_f64;
     use std::collections::HashMap;
 
     #[derive(Deserialize, Debug)]
@@ -10,21 +11,24 @@ pub mod stock_parsing {
         pub monthly_time_series: HashMap<NaiveDate, StockData>,
     }
 
-    
-
     #[derive(Debug, Deserialize)]
     #[serde(rename_all = "PascalCase")]
     pub struct StockData {
         #[serde(rename = "1. open")]
-        pub open: String,
+        #[serde(deserialize_with = "as_f64")]
+        pub open: f64,
         #[serde(rename = "2. high")]
-        pub high: String,
+        #[serde(deserialize_with = "as_f64")]
+        pub high: f64,
         #[serde(rename = "3. low")]
-        pub low: String,
+        #[serde(deserialize_with = "as_f64")]
+        pub low: f64,
         #[serde(rename = "4. close")]
-        pub close: String,
+        #[serde(deserialize_with = "as_f64")]
+        pub close: f64,
         #[serde(rename = "5. volume")]
-        pub volume: Option<String>,
+        #[serde(deserialize_with = "as_f64")]
+        pub volume: f64,
     }
 
     pub fn serialse_to_timeseries(text: String) -> Result<TimeSeries, Error> {
@@ -70,7 +74,7 @@ pub mod stock_parsing {
             match timeseries {
                 Ok(timeseries) => {
                     for (_key, stockvalue) in &timeseries.monthly_time_series {
-                        assert!(!stockvalue.open.is_empty())
+                        assert!(!stockvalue.open.is_nan())
                     }
                 }
                 Err(_e) => assert!(false),
