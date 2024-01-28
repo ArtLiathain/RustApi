@@ -7,7 +7,7 @@ pub mod data_manager {
         for (key, value) in timeseries.monthly_time_series {
             stock_date_value_tuple.push((key, value.open, value.close));
         }
-        stock_date_value_tuple.sort_by(|a, b| b.0.cmp(&a.0));
+        stock_date_value_tuple.sort_by(|a, b| a.0.cmp(&b.0));
         stock_date_value_tuple
     }
 
@@ -16,7 +16,10 @@ pub mod data_manager {
     ) -> Vec<(NaiveDate, f64)> {
         let mut daily_returns: Vec<(NaiveDate, f64)> = Vec::new();
         for (date, open, close) in stock_data {
-            daily_returns.push((date, (((close / open) - 1.00) * 100000.00).round() / 1000.00));
+            daily_returns.push((
+                date,
+                (((close / open) - 1.00) * 100000.00).round() / 1000.00,
+            ));
         }
         daily_returns
     }
@@ -63,38 +66,46 @@ pub mod data_manager {
                 continue;
             }
         }
-        
+
         ((positive / negative.abs()) * 1000.00).round() / 1000.00
     }
 
-    pub fn rolling_returns(stock_data: Vec<(NaiveDate, f64, f64)>) -> Vec<(NaiveDate, f64)>{
+    pub fn rolling_returns(stock_data: Vec<(NaiveDate, f64, f64)>) -> Vec<(NaiveDate, f64)> {
         let mut rolling_returns: Vec<(NaiveDate, f64)> = Vec::new();
         let mut started_window = false;
         let mut offset = 0;
-        println!("Stockdata length is {}", stock_data.len());
 
-        for i in 0..stock_data.len(){
+        for i in 0..stock_data.len() {
             println!("i is {}", i);
-            if started_window == true{
-                rolling_returns.push((stock_data[i].0, (((stock_data[i].1 / stock_data[i].1) - 1.00) * 100000.00).round() / 1000.00));
+            if started_window == true {
+                rolling_returns.push((
+                    stock_data[i].0,
+                    (((stock_data[i].1 / stock_data[i - offset].1) - 1.00) * 100000.00).round()
+                        / 1000.00,
+                ));
                 continue;
             }
-            for j in 0..stock_data.len(){
+            for j in 0..stock_data.len() {
                 println!("j is {}", j);
 
-                 if stock_data[i].0.month() == stock_data[j].0.month() && stock_data[i].0.year() == stock_data[j].0.year() + 1{
-                     println!("i and j are {} and {}", i, j);
-                     rolling_returns.push((stock_data[i].0, (((stock_data[i].1 / stock_data[j].1) - 1.00) * 100000.00).round() / 1000.00));
-                     started_window = true;
-                     break;
-                 }
-                 if stock_data[j].0 > stock_data[i].0 {
-                     break;
-                 }
-                
+                if j >= i {
+                    break;
+                }
+                if stock_data[i].0.month() == stock_data[j].0.month()
+                    && stock_data[i].0.year() == stock_data[j].0.year() + 1
+                {
+                    println!("i and j are {} and {}", i, j);
+                    rolling_returns.push((
+                        stock_data[i].0,
+                        (((stock_data[i].1 / stock_data[j].1) - 1.00) * 100000.00).round()
+                            / 1000.00,
+                    ));
+                    started_window = true;
+                    offset = i - j;
+                    break;
+                }
             }
         }
-        rolling_returns.push((stock_data.last().unwrap().0, 2.00));
         rolling_returns
     }
 }
@@ -147,7 +158,7 @@ pub mod data_manager_testing {
         let tuple = create_stock_date_value_tuple(timeseries);
         let daily_returns = super::data_manager::calculate_daily_returns(tuple);
         print!("{:?}", daily_returns);
-        assert!(daily_returns[0].1 == 3.245);
+        assert!(daily_returns[0].1 == -1.0);
     }
 
     #[test]
@@ -175,8 +186,6 @@ pub mod data_manager_testing {
         let tuple = create_stock_date_value_tuple(timeseries);
         print!("{:?}", tuple.len());
         let rolling_returns = super::data_manager::rolling_returns(tuple);
-        println!("{:?}", rolling_returns.len());
-        println!("Rolling Returns");
-        assert!(rolling_returns.len() == 1);
+        assert!(rolling_returns.len() == 2);
     }
 }
