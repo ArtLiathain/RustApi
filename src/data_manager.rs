@@ -1,6 +1,6 @@
 pub mod data_manager {
     use crate::stock_parsing::stock_parsing::TimeSeries;
-    use chrono::NaiveDate;
+    use chrono::{offset, Datelike, NaiveDate};
 
     pub fn create_stock_date_value_tuple(timeseries: TimeSeries) -> Vec<(NaiveDate, f64, f64)> {
         let mut stock_date_value_tuple: Vec<(NaiveDate, f64, f64)> = Vec::new();
@@ -66,6 +66,37 @@ pub mod data_manager {
         
         ((positive / negative.abs()) * 1000.00).round() / 1000.00
     }
+
+    pub fn rolling_returns(stock_data: Vec<(NaiveDate, f64, f64)>) -> Vec<(NaiveDate, f64)>{
+        let mut rolling_returns: Vec<(NaiveDate, f64)> = Vec::new();
+        let mut started_window = false;
+        let mut offset = 0;
+        println!("Stockdata length is {}", stock_data.len());
+
+        for i in 0..stock_data.len(){
+            println!("i is {}", i);
+            if started_window == true{
+                rolling_returns.push((stock_data[i].0, (((stock_data[i].1 / stock_data[i].1) - 1.00) * 100000.00).round() / 1000.00));
+                continue;
+            }
+            for j in 0..stock_data.len(){
+                println!("j is {}", j);
+
+                 if stock_data[i].0.month() == stock_data[j].0.month() && stock_data[i].0.year() == stock_data[j].0.year() + 1{
+                     println!("i and j are {} and {}", i, j);
+                     rolling_returns.push((stock_data[i].0, (((stock_data[i].1 / stock_data[j].1) - 1.00) * 100000.00).round() / 1000.00));
+                     started_window = true;
+                     break;
+                 }
+                 if stock_data[j].0 > stock_data[i].0 {
+                     break;
+                 }
+                
+            }
+        }
+        rolling_returns.push((stock_data.last().unwrap().0, 2.00));
+        rolling_returns
+    }
 }
 
 #[cfg(test)]
@@ -77,21 +108,21 @@ pub mod data_manager_testing {
     fn setup() -> Result<TimeSeries, Error> {
         let json_body = r#"
             {"Monthly Time Series": {
-                "2023-12-29": {
+                "2024-10-29": {
                 "1. open": "158.4100",
                 "2. high": "166.3400",
                 "3. low": "158.0000",
                 "4. close": "163.5500",
                 "5. volume": "87358302"
                 },
-                "2023-11-30": {
+                "2023-10-30": {
                 "1. open": "145.0000",
                 "2. high": "158.6000",
                 "3. low": "144.4500",
                 "4. close": "158.5600",
                 "5. volume": "78460252"
                 },
-                "2023-10-31": {
+                "2022-10-31": {
                 "1. open": "140.0400",
                 "2. high": "144.7600",
                 "3. low": "135.8700",
@@ -135,7 +166,17 @@ pub mod data_manager_testing {
         let tuple = create_stock_date_value_tuple(timeseries);
         let daily_returns = super::data_manager::calculate_daily_returns(tuple);
         let omega_ratio = super::data_manager::omega_ratio(daily_returns);
-        print!("{}", omega_ratio);
-        assert!(omega_ratio == 12.57);
+        assert!(omega_ratio == 12.597);
+    }
+
+    #[test]
+    fn rolling_returns_test() {
+        let timeseries = setup().unwrap();
+        let tuple = create_stock_date_value_tuple(timeseries);
+        print!("{:?}", tuple.len());
+        let rolling_returns = super::data_manager::rolling_returns(tuple);
+        println!("{:?}", rolling_returns.len());
+        println!("Rolling Returns");
+        assert!(rolling_returns.len() == 1);
     }
 }
