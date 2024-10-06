@@ -1,22 +1,20 @@
-mod stock_parsing;
-mod http_handler;
 mod data_manager;
+mod http_handler;
+mod stock_parsing;
 
+use actix_web::{web, App, HttpServer};
 use std::fs::{self};
-use crate::stock_parsing::stock_parsing::serialse_to_timeseries;
+use http_handler::http_handler::*;
 
-#[tokio::main]
-async fn main() {
-    let text = fs::read_to_string("./src/testing.json").expect("Unable to read file");
-    print!("{}", text);
-    let stockdata = serialse_to_timeseries(text);
-    match stockdata {
-        Ok(stockdata) => println!("{:?}", stockdata),
-        Err(_e) => panic!("NULL"),
-
-    }
+#[actix_web::main]
+async fn main() -> std::io::Result<()> {
+    HttpServer::new(|| {
+        App::new()
+            .service(hello)
+            .service(echo)
+            .route("/hey", web::get().to(manual_hello))
+    })
+    .bind(("127.0.0.1", 8080))?
+    .run()
+    .await
 }
-
-
-
-
